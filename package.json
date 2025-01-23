@@ -1,0 +1,19 @@
+{
+  "name": "express-endpoint-practice",
+  "version": "1.0.0",
+  "description": "Practice assignment learned about express endpoints.",
+  "main": "app.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/CMBVT2023/express-endpoint-practice.git"
+  },
+  "author": "Cristiano Miranda",
+  "license": "ISC",
+  "bugs": {
+    "url": "https://github.com/CMBVT2023/express-endpoint-practice/issues"
+  },
+  "homepage": "https://github.com/CMBVT2023/express-endpoint-practice#readme"
+}
