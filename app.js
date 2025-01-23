@@ -1,10 +1,11 @@
-const express = require('express');
-const cors = require('cors');
-const mysql = require('mysql2/promise');
+import express from 'express';
+import cors from 'cors';
+import mysql from 'mysql2/promise'
+import dotenv from 'dotenv'
 
 const app = express();
 
-require('dotenv').config();
+dotenv.config();
 
 const port = process.env.PORT;
 
@@ -14,6 +15,11 @@ const pool = mysql.createPool({
   password: process.env.DB_PASSWORD,
   database: process.env.DB_DATABASE
 });
+
+
+app.use(cors());
+
+app.use(express.json());
 
 app.use(async function(req, res, next) {
   try {
@@ -34,26 +40,11 @@ app.use(async function(req, res, next) {
   }
 });
 
-app.use(cors());
-
-app.use(express.json());
-
 app.get('/cars', async function(req, res) {
   try {
     console.log('/cars/:id')
   } catch (err) {
     
-  }
-});
-
-app.use(async function(req, res, next) {
-  try {
-    console.log('Middleware after the get /cars');
-  
-    await next();
-
-  } catch (err) {
-
   }
 });
 
@@ -95,5 +86,10 @@ app.put('/car', async function(req,res) {
   }
 });
 
+app.get('/test', (req, res) => {
+    console.log('Connection made...');
+    let connectionTime = new Date
+    res.json({connection: 'successful', time: connectionTime})
+})
 
-app.listen(port, () => console.log(`212 API Example listening on http://localhost:${port}`));
+app.listen(port, () => console.log(`244 API Example listening on http://localhost:${port}`));
