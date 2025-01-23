@@ -16,6 +16,9 @@ const pool = mysql.createPool({
   database: process.env.DB_DATABASE
 });
 
+/* 
+
+ */
 
 app.use(cors());
 
@@ -40,11 +43,16 @@ app.use(async function(req, res, next) {
   }
 });
 
+//? The GET endpoint should query the database and fetch all the data in the `car` table where the `deleted_flag` value is 0,
+//? then return the data to the front end (you should use Insomnia, Postman, or something similar to those to make the requests to test)
 app.get('/cars', async function(req, res) {
   try {
-    console.log('/cars/:id')
+    const [cars] = await req.db.query(`SELECT * FROM car WHERE deleted_flag = 0;`)
+
+    res.json(cars);
   } catch (err) {
-    
+    console.error(err);
+    res.status(500).send("Server failed to gather data from the car table.");
   }
 });
 
@@ -68,21 +76,35 @@ app.post('/car', async function(req, res) {
   }
 });
 
+/* The DELETE endpoint should change the `deleted_flag` value of a certain row in the `car` table from 0 to 1, to signify it as "deleted".
+You should send the id of the row to be updated in the URL. */
 app.delete('/car/:id', async function(req,res) {
   try {
-    console.log('req.params /car/:id', req.params)
+    let { id: dbID } = req.params;
 
-    res.json('success')
+    const query = await req.db.query(`
+        UPDATE car SET deleted_flag = 1 WHERE id = :dbID
+        `, {
+            dbID
+        })
+
+    res.json(`Successfully deleted data associated with id: ${dbID}.`);
   } catch (err) {
-
+    console.error(err);
+    res.status(500).send("Server failed to update data in the car table.");
   }
 });
 
+/* The PUT endpoint should update a column of a specific row in the `car` table with data that was sent from the front end */
 app.put('/car', async function(req,res) {
   try {
 
-  } catch (err) {
+    let { dbID, newMake, newModel, newYear } = req.body
 
+
+  } catch (err) {
+    console.error(err);
+    res.status(500).send("Server failed to update data in the car table.");
   }
 });
 
