@@ -16,10 +16,6 @@ const pool = mysql.createPool({
   database: process.env.DB_DATABASE
 });
 
-/* 
-
- */
-
 app.use(cors());
 
 // Parses the body data if any is sent when making a request
