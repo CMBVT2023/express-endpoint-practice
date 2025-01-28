@@ -42,10 +42,36 @@ app.use(async function(req, res, next) {
   }
 });
 
+app.use(async (req, res, next) => {
+  try {
+    const { authorization } = req.headers;
+    
+    // In the example they pass their authorization scheme with the token, in my case I am currently not 
+    // doing that so I do not need to split the string passed in, this will likely change once I start
+    // to understand how the scheme works and why it is important.
+
+    const decodedUser = jwt.verify(authorization, process.env.JWT_KEY);
+
+    // This creates a user property on the request object and it will be available to the endpoints if the user
+    // is verified. 
+    req.user = decodedUser;
+  } catch (error) {
+    
+  }
+
+  // Moves on to the next middle ware or endpoint in the line.
+  await next();
+})
+
 //? The GET endpoint should query the database and fetch all the data in the `car` table where the `deleted_flag` value is 0,
 //? then return the data to the front end (you should use Insomnia, Postman, or something similar to those to make the requests to test)
 app.get('/cars', async function(req, res) {
   try {
+    if (!req.user) {
+      res.status(300).send('User not authorized!')
+      return;
+    }
+
     const [cars] = await req.db.query(`SELECT * FROM car WHERE deleted_flag IS NULL;`)
 
     res.status(200).json(cars);
@@ -57,6 +83,11 @@ app.get('/cars', async function(req, res) {
 
 app.post('/car', async function(req, res) {
   try {
+    if (!req.user) {
+      res.status(300).send('User not authorized!')
+      return;
+    }
+
     const { make, model, year } = req.body;
   
     const query = await req.db.query(
@@ -79,6 +110,10 @@ app.post('/car', async function(req, res) {
 You should send the id of the row to be updated in the URL. */
 app.delete('/car/:id', async function(req,res) {
   try {
+    if (!req.user) {
+      res.status(300).send('User not authorized!')
+      return;
+    }
     let { id: dbID } = req.params;
 
     const query = await req.db.query(`
@@ -97,6 +132,10 @@ app.delete('/car/:id', async function(req,res) {
 //? The PUT endpoint should update a column of a specific row in the `car` table with data that was sent from the front end
 app.put('/car', async function(req,res) {
   try {
+    if (!req.user) {
+      res.status(300).send('User not authorized!')
+      return;
+    }
     //* Data from the body becomes usable after the body is parsed into json, which is done using the use method above.
     let { dbID, newMake, newModel, newYear } = req.body
 
