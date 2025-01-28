@@ -1,7 +1,9 @@
-import express from 'express';
+import express, { json } from 'express';
 import cors from 'cors';
 import mysql from 'mysql2/promise'
 import dotenv from 'dotenv'
+import jwt from 'jsonwebtoken';
+import bcrypt from 'bcrypt'
 
 const app = express();
 
@@ -119,6 +121,66 @@ app.put('/car', async function(req,res) {
     res.status(500).send("Server failed to update data in the car table.");
   }
 });
+
+app.post('/register', async (req, res) => {
+  try {
+    const { userName, userKey } = req.body
+
+    // Try changing the salt value to a randomly changing number to see if it breaks anything
+    const hashedKey = await bcrypt.hash(userKey, 10)
+
+    const [user] = await req.db.query(
+      `INSERT INTO users (username, userkey)
+      VALUES (:userName, :hashedKey)`,
+      {
+        userName,
+        hashedKey
+      }
+    )
+
+    console.log(user)
+
+    const jwtSignedUser = jwt.sign(
+      { userID: user.insertId, userName },
+      process.env.JWT_KEY
+    );
+
+    res.status(200).json({jwt: jwtSignedUser, success: true});
+  } catch (error) {
+    console.error(error);
+    res.status(500).send("Server failed to register new user.");
+  }
+})
+
+app.post('/log-in', async (req, res) => {
+  try {
+    const { userName, userKey } = req.body;
+
+    const [[user]] = await req.db.query(
+      `SELECT * FROM users WHERE username = :userName`, { userName }
+    );
+
+    if (!user) throw new Error('User does not exist!')
+
+    // Make sure the hashed password is seen as a string when comparing it.
+    const hashedKey = `${user.userkey}`
+    const isPasswordAMatch = await bcrypt.compare(userKey, hashedKey);
+
+    if (!isPasswordAMatch) throw new Error("Username or password is incorrect.")
+      
+    const jsonPayload = {
+      id: user.id,
+      username: user.username,
+    };
+
+    const jwtEncodedUser = jwt.sign(jsonPayload, process.env.JWT_KEY);
+    
+    res.status(200).json({jwt: jwtEncodedUser, success: true})
+  } catch (error) {
+    console.error(error);
+    res.status(500).send("Server failed to register new user.");
+  }
+})
 
 app.get('/test', (req, res) => {
     console.log('Connection made...');
