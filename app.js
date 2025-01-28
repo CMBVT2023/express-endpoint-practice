@@ -138,8 +138,6 @@ app.post('/register', async (req, res) => {
       }
     )
 
-    console.log(user)
-
     const jwtSignedUser = jwt.sign(
       { userID: user.insertId, userName },
       process.env.JWT_KEY
